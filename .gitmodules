@@ -1,0 +1,3 @@
+[submodule "HobbistCommunicator/HobbistDAL"]
+	path = HobbistCommunicator/HobbistDAL
+	url = https://github.com/Wojtaszek91/HobbistDAL.git
