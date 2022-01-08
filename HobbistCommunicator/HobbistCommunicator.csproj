@@ -1,11 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="HobbistDAL\**" />
+    <Content Remove="HobbistDAL\**" />
+    <EmbeddedResource Remove="HobbistDAL\**" />
+    <None Remove="HobbistDAL\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="HobbistDAL\DAL\DAL.csproj" />
+    <ProjectReference Include="HobbistDAL\Models\Models.csproj" />
   </ItemGroup>
 
 </Project>
