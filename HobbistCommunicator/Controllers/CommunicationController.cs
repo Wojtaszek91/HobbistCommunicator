@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Models.Models;
+using Models.Models.DTOs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -28,12 +29,14 @@ namespace HobbistCommunicator.Controllers
         }
 
         [HttpPost("SendMessageToUser")]
-        public async Task<IActionResult> SendMessageToUser([FromBody] UserMessage userMessage)
+        public async Task<IActionResult> SendMessageToUser([FromBody] NewUserMessageDto userMessage)
         {
             if (userMessage.SenderProfileId == Guid.Empty || userMessage.TargetProfileId == Guid.Empty || string.IsNullOrEmpty(userMessage.Content))
                 return BadRequest("Wrong Content");
 
-            return await _messageService.SaveNewMessage(userMessage) == true ?  Ok() : BadRequest("Inner exception");
+            UserMessage newUserMessage = new UserMessage(userMessage.SenderProfileId, userMessage.TargetProfileId, userMessage.Content);
+
+            return await _messageService.SaveNewMessage(newUserMessage) == true ?  Ok() : BadRequest("Inner exception");
         }
 
         [HttpPost("MarkAsOpen")]
@@ -71,8 +74,8 @@ namespace HobbistCommunicator.Controllers
             response.Headers.Add("Content-Type", "text/event-stream");
             response.StatusCode = 200;
 
-            while (true)
-            {
+            //while (true)
+            //{
                 var messageList = await _messageService.GetNotOpenUserMessages(profileId);
 
                 if (messageList != null)
@@ -85,25 +88,22 @@ namespace HobbistCommunicator.Controllers
                         }
                     }
 
-                    await response.WriteAsync($"{PrepareStreamMessage(messageToSend)}");
-                    response.Body.FlushAsync();
+                    if(messageToSend.Count() > 0 )
+                    {
+                        await response.WriteAsync($"{PrepareStreamMessage(messageToSend)}");
+                        response.Body.FlushAsync();
+                        messageToSend.ForEach(x => alreadySendMessages.Add(x.Id));
+                        messageToSend.Clear();
+                    }
 
-                    messageToSend.ForEach(x => alreadySendMessages.Add(x.Id));
-                    messageToSend.Clear();
                     Thread.Sleep(3000);
                 }
-            }
+            //}
         }      
 
-        private string PrepareStreamMessage(List<UserMessage> messageList)
-        {
-            var messageListStringObject = JsonConvert.SerializeObject(messageList);
-
-            return JsonConvert.SerializeObject(
-                new JObject(
-                    new JProperty("messageList", messageListStringObject),
-                    new JsonSerializerSettings
-                    { ContractResolver = new CamelCasePropertyNamesContractResolver() }));
-        }
+        private string PrepareStreamMessage(List<UserMessage> messageList) 
+            => JsonConvert.SerializeObject( new JObject(
+                new JProperty("messageList", JsonConvert.SerializeObject(messageList))), 
+                new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
     }
 }
