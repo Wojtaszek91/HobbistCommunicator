@@ -10,8 +10,8 @@ namespace DAL.Repositories.IRepositories
     public interface IUserMessageRepository
     {
         Task<bool> SaveMessage(UserMessage userMessage);
-        Task<bool> MarkAsReaded(Guid messageId);
-        Task<IEnumerable<UserMessage>> GetUserMessages(Guid userProfileId, int index);
-        Task<IEnumerable<UserMessage>> GetNotOpenUserMessages(Guid userProfileId);
+        Task<bool> MarkAsOpened(Guid messageId);
+        Task<IEnumerable<UserMessage>> GetUserMessagesAtLogin(Guid userProfileId);
+        Task<IEnumerable<UserMessage>> GetNotSendUserMessages(Guid userProfileId);
     }
 }

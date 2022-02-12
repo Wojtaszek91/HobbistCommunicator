@@ -10,6 +10,7 @@ namespace Models.Models.DTOs
     {
         public Guid SenderProfileId { get; set; }
         public Guid TargetProfileId { get; set; }
+        public string TargetUserName { get; set; }
         public string Content { get; set; }
     }
 }

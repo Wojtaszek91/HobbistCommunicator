@@ -31,18 +31,21 @@ namespace HobbistCommunicator.Controllers
         [HttpPost("SendMessageToUser")]
         public async Task<IActionResult> SendMessageToUser([FromBody] NewUserMessageDto userMessage)
         {
-            if (userMessage.SenderProfileId == Guid.Empty || userMessage.TargetProfileId == Guid.Empty || string.IsNullOrEmpty(userMessage.Content))
+            if (userMessage.SenderProfileId == Guid.Empty
+                || userMessage.TargetProfileId == Guid.Empty
+                || string.IsNullOrEmpty(userMessage.Content)
+                || string.IsNullOrEmpty(userMessage.TargetUserName))
                 return BadRequest("Wrong Content");
 
-            UserMessage newUserMessage = new UserMessage(userMessage.SenderProfileId, userMessage.TargetProfileId, userMessage.Content);
+            UserMessage newUserMessage = new UserMessage(userMessage.SenderProfileId, userMessage.TargetProfileId, userMessage.Content, userMessage.TargetUserName);
 
-            return await _messageService.SaveNewMessage(newUserMessage) == true ?  Ok() : BadRequest("Inner exception");
+            return await _messageService.SaveNewMessage(newUserMessage) == true ? Ok() : BadRequest("Inner exception");
         }
 
         [HttpPost("MarkAsOpen")]
         public async Task<IActionResult> MarkAsOpen([FromBody] Guid MessageId)
         {
-            if (MessageId == Guid.Empty) 
+            if (MessageId == Guid.Empty)
                 return BadRequest("Didn't recive id");
 
             var result = await _messageService.MarkMessageAsOpen(MessageId);
@@ -53,10 +56,10 @@ namespace HobbistCommunicator.Controllers
             return NoContent();
         }
 
-        [HttpGet("GetMessagesByIndex")]
-        public async Task<IActionResult> GetMessagesByIndex(Guid profileId, int index)
+        [HttpGet("GetMessagesAtLogin")]
+        public async Task<IActionResult> GetMessagesAtLogin(Guid profileId)
         {
-            var messageList =  await _messageService.GetUserMessagesByIndex(profileId, index);
+            var messageList = await _messageService.GetUserMessagesMappedDictionaryAtLogin(profileId);
 
             if (messageList == null)
                 return BadRequest("Coudn't get message list");
@@ -67,43 +70,26 @@ namespace HobbistCommunicator.Controllers
         [HttpGet("OnlineMessageSubscribe")]
         public async Task SubscribeForNewMessages(Guid profileId)
         {
-            List<Guid> alreadySendMessages = new List<Guid>();
-            List<UserMessage> messageToSend = new List<UserMessage>();
-
             var response = Response;
             response.Headers.Add("Content-Type", "text/event-stream");
             response.StatusCode = 200;
 
-            //while (true)
-            //{
-                var messageList = await _messageService.GetNotOpenUserMessages(profileId);
+            while (true)
+            {
+                var messagesMappedDictionary = await _messageService.GetNotOpenUserMessagesMappedDictionary(profileId);
 
-                if (messageList != null)
+                if (messagesMappedDictionary != null)
                 {
-                    foreach(var message in messageList)
-                    {
-                        if (!alreadySendMessages.Contains(message.Id))
-                        {
-                            messageToSend.Add(message);
-                        }
-                    }
-
-                    if(messageToSend.Count() > 0 )
-                    {
-                        await response.WriteAsync($"{PrepareStreamMessage(messageToSend)}");
-                        response.Body.FlushAsync();
-                        messageToSend.ForEach(x => alreadySendMessages.Add(x.Id));
-                        messageToSend.Clear();
-                    }
-
-                    Thread.Sleep(3000);
+                    await response.WriteAsync($"{PrepareStreamMessage(messagesMappedDictionary)}");
+                    response.Body.FlushAsync();
                 }
-            //}
-        }      
+                Thread.Sleep(3000);
+            }
+        }
 
-        private string PrepareStreamMessage(List<UserMessage> messageList) 
-            => JsonConvert.SerializeObject( new JObject(
-                new JProperty("messageList", JsonConvert.SerializeObject(messageList))), 
+        private string PrepareStreamMessage<T>(T messageList)
+            => JsonConvert.SerializeObject(new JObject(
+                new JProperty("messageList", JsonConvert.SerializeObject(messageList))),
                 new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
     }
 }

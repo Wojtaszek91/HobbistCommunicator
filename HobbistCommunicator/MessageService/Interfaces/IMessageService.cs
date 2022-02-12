@@ -1,4 +1,5 @@
 ﻿using Models.Models;
+using Models.Models.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +9,8 @@ namespace HobbistCommunicator.MessageService.Interfaces
 {
     public interface IMessageService
     {
-        Task<IEnumerable<UserMessage>> GetNotOpenUserMessages(Guid profileId);
-        Task<IEnumerable<UserMessage>> GetUserMessagesByIndex(Guid profileId, int index);
+        Task<Dictionary<UserIdUserNameModel, List<UserMessage>>> GetNotOpenUserMessagesMappedDictionary(Guid profileId);
+        Task<Dictionary<UserIdUserNameModel, List<UserMessage>>> GetUserMessagesMappedDictionaryAtLogin(Guid profileId);
         Task<bool> SaveNewMessage(UserMessage userMessage);
         Task<bool?> MarkMessageAsOpen(Guid messageId);
     }
