@@ -1,8 +1,10 @@
-﻿using DAL.Repositories.IRepositories;
+﻿using DAL.Repositories;
+using DAL.Repositories.IRepositories;
 using HobbistCommunicator.MessageService.Interfaces;
 using Microsoft.Extensions.Logging;
 using Models.Models;
 using Models.Models.DTOs;
+using Models.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,95 +14,60 @@ namespace HobbistCommunicator.MessageService
 {
     public class MessageService : IMessageService
     {
-        private readonly IUserMessageRepository _messageRepo;
-        private readonly ILogger<MessageService> _logger;
+        private readonly UserMessageRepository _messageRepo;
+        //private readonly ILogger<MessageService> _logger;
 
-        public MessageService(IUserMessageRepository messageRepo, ILogger<MessageService> logger)
+        public MessageService(UserMessageRepository messageRepo)
         {
             _messageRepo = messageRepo;
-            _logger = logger;
+            //_logger = logger;
         }
-        public async Task<Dictionary<UserIdUserNameModel, List<UserMessage>>> GetNotOpenUserMessagesMappedDictionary(Guid profileId)
+
+        public async Task<Guid> CreateNewMessageBox(Guid profileOneId, Guid profileTwoId)
         {
             try
             {
-                var messageList = await _messageRepo.GetNotSendUserMessages(profileId);
-                if (messageList.Count() > 0)
-                    return GetMappedUserMessages(messageList);
-                else
-                    return null;
+                var newMessageBoxId = await _messageRepo.CreateNewMessageBox(profileOneId, profileTwoId);
+                if (newMessageBoxId == Guid.Empty) return Guid.Empty;
+                return newMessageBoxId;
             }
-            catch (Exception e)
+            catch(Exception e)
             {
-                _logger.LogError($"Error while trying to get not open messages from profileId: {profileId}, message: {e.Message}");
+                //_logger.LogError($"Error while trying to create new MessageBox. ProfileOneId: {profileOneId} ProfileTwoId: {profileTwoId}. Message: {e.Message}");
+                return Guid.Empty;
+            }
+        }
+
+        public async Task<bool> SaveNewMessage(Guid messageBoxId, string content, Guid senderProfileId)
+        {
+            try
+            {
+                return await _messageRepo.SaveNewMessage(messageBoxId, content, senderProfileId);
+            }
+            catch(Exception e)
+            {
+                //_logger.LogError($"Error while trying to save new message. MessageBoxId: {messageBoxId}, SenderProfileId: {senderProfileId}");
+                return false;
+            }
+        }
+
+        public async Task<MessageBox> GetMessageBoxById(Guid id)
+        {
+            try
+            {
+                var messageBox = await _messageRepo.GetMessageBoxById(id);
+                return messageBox;
+            }
+            catch(Exception e)
+            {
+                //_logger.LogError($"Error while trying to get MessageBox id: {id}. Message: {e.Message}");
                 return null;
             }
         }
 
-        public async Task<Dictionary<UserIdUserNameModel, List<UserMessage>>> GetUserMessagesMappedDictionaryAtLogin(Guid profileId)
+        public Task<List<MessageBox>> GetAllMessageBoxes(Guid profileId)
         {
-            try
-            {
-                return GetMappedUserMessages(await _messageRepo.GetUserMessagesAtLogin(profileId));
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Error while trying to get messages by index from profileId: {profileId}. Message: {e.Message}");
-                return null;
-            }
-        }
-
-        public async Task<bool?> MarkMessageAsOpen(Guid messageId)
-        {
-            try
-            {
-                return await _messageRepo.MarkAsOpened(messageId);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Error while trying to mark message as readed. MessageId: {messageId}, message: {e.Message}");
-                return null;
-            }
-        }
-
-        public Task<bool> SaveNewMessage(UserMessage userMessage)
-        {
-            try
-            {
-                return _messageRepo.SaveMessage(userMessage);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Error while trying to save userMessage senderId: {userMessage.SenderProfileId} TargetProfileId: {userMessage.TargetProfileId}, message: {e.Message}");
-                return null;
-            }
-        }
-
-        private Dictionary<UserIdUserNameModel, List<UserMessage>> GetMappedUserMessages(IEnumerable<UserMessage> messagesList)
-        {
-            Dictionary<UserIdUserNameModel, List<UserMessage>> mappedDictionary = new Dictionary<UserIdUserNameModel, List<UserMessage>>();
-            
-            foreach(var message in messagesList)
-            {
-                AddMessageToDictionary(mappedDictionary, message);
-            }
-
-            return mappedDictionary;
-        }
-
-        private void AddMessageToDictionary(Dictionary<UserIdUserNameModel, List<UserMessage>> dictionary, UserMessage message)
-        {
-            UserIdUserNameModel idNameModel = new UserIdUserNameModel(message.TargetProfileId, message.TargetUserName);
-            if (dictionary.ContainsKey(idNameModel))
-            {
-                dictionary[idNameModel].Add(message);
-            }
-            else
-            {
-                List<UserMessage> newMessageList = new List<UserMessage>();
-                newMessageList.Add(message);
-                dictionary.Add(idNameModel, newMessageList);
-            }
+            throw new NotImplementedException();
         }
     }
 }
