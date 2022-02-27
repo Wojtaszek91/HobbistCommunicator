@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hobbist.Association.DAL" Version="1.0.14" />
-    <PackageReference Include="Hobbist.Association.Models" Version="1.0.7" />
+    <PackageReference Include="Hobbist.Association.DAL" Version="1.0.19" />
+    <PackageReference Include="Hobbist.Association.Models" Version="1.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />

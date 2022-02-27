@@ -37,17 +37,10 @@ namespace HobbistCommunicator.Controllers
             return Ok(newMessageBoxId);
         }
 
-        [HttpPost("SendNewMessage")]
-        public async Task<IActionResult> SendNewMessage(Guid messageBoxId, string content, Guid senderProfileId)
+        [HttpGet("GetUserAllMessageBoxes")]
+        public async Task<IActionResult> GetUserAllMessageBoxes(Guid profileId)
         {
-            var result = await _messageService.SaveNewMessage(messageBoxId, content, senderProfileId);
-            return result ? Ok() : BadRequest();
-        }
-
-        [HttpGet("GetMessageBoxById")]
-        public async Task<IActionResult> GetMessageBoxById(Guid messageBoxId)
-        {
-            var messageBox = await _messageService.GetMessageBoxById(messageBoxId);
+            var messageBox = await _messageService.GetAllMessageBoxes(profileId);
             return messageBox != null ? Ok(messageBox) : BadRequest();
         }
         //[HttpPost("SendMessageToUser")]

@@ -38,7 +38,7 @@ namespace HobbistCommunicator.MessageService
             }
         }
 
-        public async Task<bool> SaveNewMessage(Guid messageBoxId, string content, Guid senderProfileId)
+        public async Task<UserMessage> SaveNewMessage(Guid messageBoxId, string content, Guid senderProfileId)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace HobbistCommunicator.MessageService
             catch(Exception e)
             {
                 //_logger.LogError($"Error while trying to save new message. MessageBoxId: {messageBoxId}, SenderProfileId: {senderProfileId}");
-                return false;
+                return null;
             }
         }
 
@@ -67,7 +67,20 @@ namespace HobbistCommunicator.MessageService
 
         public Task<List<MessageBox>> GetAllMessageBoxes(Guid profileId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return _messageRepo.GetAllUserMessageBoxes(profileId);
+            }
+            catch(Exception e)
+            {
+                //_logger.LogError($"Error while trying to get MessageBox list for profile id: {profileId}. Message: {e.Message}");
+                return null;
+            }
+        }
+
+        public Task<string> GetUsernameByProfileId(Guid profileId)
+        {
+            return _messageRepo.GetUsernameByProfileId(profileId);
         }
     }
 }
