@@ -36,26 +36,22 @@ namespace HobbistCommunicator.CommunicationHub
             _connectedUsers.Remove(userName);
             return base.OnDisconnectedAsync(exception);
         }
-        public async Task SendMessageAsync(string messageBoxId, string message, string senderProfileId, string targetProfileId)
+        public async Task SendMessageAsync(Guid messageBoxId, string message, Guid senderProfileId, Guid targetProfileId)
         {
             try
             {
-                Guid messageBoxGuidId = Guid.Parse(messageBoxId);
-                Guid senderProfileGuidId = Guid.Parse(senderProfileId);
-                Guid targetProfileGuidId = Guid.Parse(targetProfileId);
-                var userMessage = await _messageService.SaveNewMessage(messageBoxGuidId, message, senderProfileGuidId);
+                var userMessage = await _messageService.SaveNewMessage(messageBoxId, message, senderProfileId);
                 if(userMessage != null)
                 {
-                    userMessage.MessageBoxId = messageBoxGuidId;
-                    var stringMessage = JsonConvert.SerializeObject(userMessage);
+                    userMessage.MessageBox = null;
                     string targetConnectionId = "";
                     string senderConnectionId = "";
-                    _connectedUsers.TryGetValue(_messageService.GetUsernameByProfileId(targetProfileGuidId).Result.ToUpper(), out targetConnectionId);
-                    _connectedUsers.TryGetValue(_messageService.GetUsernameByProfileId(senderProfileGuidId).Result.ToUpper(), out senderConnectionId);
+                    _connectedUsers.TryGetValue(_messageService.GetUsernameByProfileId(targetProfileId).Result.ToUpper(), out targetConnectionId);
+                    _connectedUsers.TryGetValue(_messageService.GetUsernameByProfileId(senderProfileId).Result.ToUpper(), out senderConnectionId);
                     if (targetConnectionId != null)
-                        await Clients.Client(targetConnectionId).SendAsync("ReciveMessage", messageBoxId, stringMessage);
+                        await Clients.Client(targetConnectionId).SendAsync("ReciveMessage", messageBoxId, userMessage);
                     if (senderConnectionId != null)
-                        await Clients.Client(senderConnectionId).SendAsync("ReciveMessage", messageBoxId, stringMessage);
+                        await Clients.Client(senderConnectionId).SendAsync("ReciveMessage", messageBoxId, userMessage);
                 }
             }
             catch(Exception e)

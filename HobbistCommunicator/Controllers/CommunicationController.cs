@@ -40,71 +40,8 @@ namespace HobbistCommunicator.Controllers
         [HttpGet("GetUserAllMessageBoxes")]
         public async Task<IActionResult> GetUserAllMessageBoxes(Guid profileId)
         {
-            var messageBox = await _messageService.GetAllMessageBoxes(profileId);
-            return messageBox != null ? Ok(messageBox) : BadRequest();
+            var messageBoxList = await _messageService.GetAllMessageBoxes(profileId);
+            return messageBoxList != null ? Ok(messageBoxList) : BadRequest();
         }
-        //[HttpPost("SendMessageToUser")]
-        //public async Task<IActionResult> SendMessageToUser([FromBody] NewUserMessageDto userMessage)
-        //{
-        //    if (userMessage.SenderProfileId == Guid.Empty
-        //        || userMessage.TargetProfileId == Guid.Empty
-        //        || string.IsNullOrEmpty(userMessage.Content)
-        //        || string.IsNullOrEmpty(userMessage.TargetUserName))
-        //        return BadRequest("Wrong Content");
-
-        //    UserMessage newUserMessage = new UserMessage(userMessage.SenderProfileId, userMessage.TargetProfileId, userMessage.Content, userMessage.TargetUserName);
-
-        //    return await _messageService.SaveNewMessage(newUserMessage) == true ? Ok() : BadRequest("Inner exception");
-        //}
-
-        //[HttpPost("MarkAsOpen")]
-        //public async Task<IActionResult> MarkAsOpen([FromBody] Guid MessageId)
-        //{
-        //    if (MessageId == Guid.Empty)
-        //        return BadRequest("Didn't recive id");
-
-        //    var result = await _messageService.MarkMessageAsOpen(MessageId);
-
-        //    if (result == null || result == false)
-        //        return BadRequest("Coudn't mark as open");
-
-        //    return NoContent();
-        //}
-
-        //[HttpGet("GetMessagesAtLogin")]
-        //public async Task<IActionResult> GetMessagesAtLogin(Guid profileId)
-        //{
-        //    var messageBoxList = await _messageService.SaveNewMessage(profileId);
-
-        //    if (messageBoxList == null)
-        //        return BadRequest("Coudn't get message list");
-
-        //    return Ok(messageBoxList);
-        //}
-
-        //[HttpGet("OnlineMessageSubscribe")]
-        //public async Task SubscribeForNewMessages(Guid profileId)
-        //{
-        //    var response = Response;
-        //    response.Headers.Add("Content-Type", "text/event-stream");
-        //    response.StatusCode = 200;
-
-        //    while (true)
-        //    {
-        //        var messageBoxList = await _messageService.GetMessageBoxesHistory(profileId);
-
-        //        if (messageBoxList != null)
-        //        {
-        //            await response.WriteAsync($"{PrepareStreamMessage(messageBoxList)}");
-        //            response.Body.FlushAsync();
-        //        }
-        //        Thread.Sleep(3000);
-        //    }
-        //}
-
-        //private string PrepareStreamMessage<T>(T messageList)
-        //    => JsonConvert.SerializeObject(new JObject(
-        //        new JProperty("messageBoxList", JsonConvert.SerializeObject(messageList))),
-        //        new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
     }
 }
